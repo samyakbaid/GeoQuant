@@ -1,0 +1,24 @@
+# Core dependencies for GeoQuant Geopolitical Risk Anticipation System
+
+# Financial data acquisition from Yahoo Finance
+yfinance
+
+# Data manipulation and analysis
+pandas
+numpy
+
+# Visualization libraries
+matplotlib
+plotly
+
+# Machine learning models
+scikit-learn
+
+# Volatility modeling
+arch
+
+# Gradient boosting
+xgboost
+
+# Web application framework
+streamlit

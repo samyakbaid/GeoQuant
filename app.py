@@ -366,229 +366,120 @@ elif mode == "Model Comparison & Evaluation":
             """)
 
 elif mode == "Mathematical Framework":
-    # Section 1: Explain logarithmic return calculations
-    st.header("1. Log Return Modeling")
-
+    st.header("Mathematical & Machine Learning Framework")
     st.markdown("""
-### Definition
+    This system bridges classical financial econometrics with modern machine learning. 
+    The architecture is divided into four sequential phases: **Target Generation, Static Classification, Sequential Deep Learning, and Sector Ranking.**
+    """)
 
-Asset prices evolve multiplicatively:
+    st.markdown("---")
 
-P_t = P_{t-1} (1 + R_t)
-
-To linearize this dynamic, we use logarithmic returns.
-""")
-
-    st.latex(r"""
-r_t = \ln\left(\frac{P_t}{P_{t-1}}\right)
-""")
-
+    # PHASE 1
+    st.header("Phase 1: Ground Truth Target Generation (GARCH)")
     st.markdown("""
-### Why Log Returns?
-
-1. Additivity over time:
-""")
-
-    st.latex(r"""
-\ln\left(\frac{P_t}{P_{t-2}}\right)
-=
-\ln\left(\frac{P_t}{P_{t-1}}\right)
-+
-\ln\left(\frac{P_{t-1}}{P_{t-2}}\right)
-""")
-
-    st.markdown("""
-2. Stabilizes variance
-3. Approximates continuously compounded return
-
-This is the return series used to compute:
-• Rolling volatility
-• GARCH conditional variance
-• ML target variable
-""")
-
-    st.subheader("Numerical Example")
-
-    # Demonstrate log return calculation with a concrete example
-    price1 = 100
-    price2 = 110
-
-    log_ret = np.log(price2/price1)
-
-    st.latex(r"\ln(110/100)")
-    st.write(f"Log return = {log_ret:.4f}")
-
-    # Section 2: Explain rolling volatility calculation
-    st.header("2. Rolling Volatility Estimation")
-
-    st.markdown("""
-Volatility measures dispersion of returns.
-
-For window size n:
-""")
-
-    st.latex(r"""
-\sigma_t = \sqrt{\frac{1}{n} \sum_{i=1}^{n} r_{t-i}^2}
-""")
-
-    st.markdown("""
-This is the empirical standard deviation of recent returns.
-
-This dashboard displays:
-
-• 20-day rolling volatility of S&P 500
-• Used as input feature
-• Used to define regime shift target
-""")
-
-    st.markdown("### Why This Matters")
-
-    st.markdown("""
-Volatility clustering is empirically observed in financial markets.
-
-Periods of calm are followed by calm.
-Periods of turbulence are followed by turbulence.
-
-Detecting rising rolling volatility allows early detection of stress regimes.
-""")
-
-    st.subheader("Example Calculation")
-
-    # Show practical example of volatility calculation
-    example_returns = np.array([0.01, -0.02, 0.015, 0.005, -0.01])
-    vol_example = np.sqrt(np.mean(example_returns**2))
-
-    st.write(f"Example volatility = {vol_example:.4f}")
-
-    # Section 3: Explain GARCH model for conditional volatility
-    st.header("3. GARCH(1,1) Conditional Volatility Model")
-
-    st.markdown("""
-We model returns as:
-""")
-
-    st.latex(r"""
-r_t = \sigma_t \epsilon_t
-""")
-
-    st.latex(r"""
-\epsilon_t \sim N(0,1)
-""")
-
-    st.markdown("""
-Conditional variance evolves as:
-""")
-
-    st.latex(r"""
-\sigma_t^2 = \omega + \alpha r_{t-1}^2 + \beta \sigma_{t-1}^2
-""")
-
-    st.markdown("""
-Interpretation:
-
-• ω → Long-run variance  
-• α → Reaction to shocks  
-• β → Volatility persistence  
-
-Stationarity condition:
-""")
-
-    st.latex(r"""
-\alpha + \beta < 1
-""")
-
-    st.markdown("""
-This model captures volatility clustering — a stylized fact of financial markets.
-
-The displayed "GARCH Forecast Volatility" on the main dashboard
-is the one-step-ahead forecast:
-
-""")
-
-    st.latex(r"""
-E[\sigma_{t+1}^2 | \mathcal{F}_t]
-""")
-
-    # Section 4: Explain volatility regime classification
-    st.header("4. Volatility Regime Classification")
-
-    st.markdown("""
-We define the prediction target as:
-
-1 if next-day volatility > current volatility  
-0 otherwise
-""")
-
-    st.latex(r"""
-Target_t =
-\begin{cases}
-1 & \text{if } \sigma_{t+1} > \sigma_t \\
-0 & \text{otherwise}
-\end{cases}
-""")
-
-    st.markdown("""
-The Random Forest classifier estimates:
-
-""")
-
-    st.latex(r"""
-P(Target_t = 1 | X_t)
-""")
-
-    st.markdown("""
-Where X_t includes:
-
-• Oil returns  
-• Gold returns  
-• VIX changes  
-• Momentum  
-• Rolling volatility  
-
-This probability is displayed as:
-
-"Predicted Risk Probability"
-""")
-
-    # Section 5: Explain cross-asset macro risk transmission
-    st.header("5. Cross-Asset Macro Risk Transmission")
-
-    st.markdown("""
-Geopolitical tension affects markets through risk channels:
-
-Oil ↑ → Supply risk  
-Gold ↑ → Safe haven demand  
-VIX ↑ → Implied volatility surge  
-Equities ↓ → Risk-off positioning  
-
-The model encodes these as leading indicators of volatility regime shift.
-""")
+    Machine learning classifiers require discrete target labels. Because true market volatility is unobservable, 
+    we extract the conditional variance using a classical Generalized Autoregressive Conditional Heteroskedasticity (GARCH) model.
     
-    # Section 6: Explain softmax transformation for probability distribution
-    st.header("6. Softmax Probability Transformation with Temperature Scaling")
+    First, asset prices are converted to logarithmic returns to ensure additivity and stationarity:
+    """)
+    st.latex(r"r_t = \ln\left(\frac{P_t}{P_{t-1}}\right)")
+    
+    st.markdown("The **GARCH(1,1)** conditional variance $\sigma_t^2$ evolves as:")
+    st.latex(r"\sigma_t^2 = \omega + \alpha r_{t-1}^2 + \beta \sigma_{t-1}^2")
     
     st.markdown("""
-Softmax converts raw scores into calibrated probability distribution that sums to 1.
-""")
+    Where:
+    * **$\omega$**: Long-run baseline variance
+    * **$\alpha r_{t-1}^2$**: ARCH term (reaction to recent market shocks)
+    * **$\beta \sigma_{t-1}^2$**: GARCH term (persistence of past volatility)
     
+    Using Maximum Likelihood Estimation (MLE), we calculate the one-step-ahead forecasted volatility ($\sigma_{t+1}$). 
+    The binary classification target ($y_t$) is then generated using a logical step function, classifying tomorrow as a higher-risk regime (1) or lower-risk regime (0):
+    """)
     st.latex(r"""
-P(class_i) = \frac{e^{s_i/T}}{\sum_j e^{s_j/T}}
-""")
+    y_t = \begin{cases} 
+    1 & \text{if } \sigma_{t+1} > \sigma_t \\ 
+    0 & \text{otherwise} 
+    \end{cases}
+    """)
+
+    st.markdown("---")
+
+    # PHASE 2
+    st.header("Phase 2: Static Regime Classification (Baselines)")
+    st.markdown("""
+    With targets defined, we establish baselines using models that evaluate a static "snapshot" of macroeconomic features $X_t$ (Oil, Gold, VIX, etc.).
+    """)
+
+    st.subheader("Logistic Regression (Linear Baseline)")
+    st.markdown("Models the log-odds of a high-risk regime as a linear combination of features, mapped to a probability between 0 and 1 using the sigmoid function:")
+    st.latex(r"P(y_t = 1 | X_t) = \frac{1}{1 + e^{-(\beta_0 + \sum_{i=1}^n \beta_i x_{i,t})}}")
+
+    st.subheader("Random Forest (Tree-Based Ensemble)")
+    st.markdown("""
+    Captures non-linear relationships without easily overfitting by aggregating predictions from $B$ decision trees. 
+    Splits are determined by minimizing Gini Impurity ($H$):
+    """)
+    st.latex(r"H(Q) = \sum_{k \in \{0, 1\}} p_k (1 - p_k)")
+    st.markdown("The final probability is the averaged vote across all trees:")
+    st.latex(r"P(y_t = 1 | X_t) = \frac{1}{B} \sum_{b=1}^B \hat{y}_b(X_t)")
+
+    st.markdown("---")
+
+    # PHASE 3
+    st.header("Phase 3: Sequential Deep Learning (LSTM)")
+    st.markdown("""
+    Financial markets are inherently sequential; the momentum of the past month influences tomorrow's risk. 
+    To capture this chronological trajectory, we restructure the 2D feature matrix into 3D rolling windows (e.g., 21-day sequences) and pass them through a Long Short-Term Memory (LSTM) network.
+    
+    The LSTM maintains an internal cell state ($C_t$) regulated by three distinct gates:
+    """)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**1. Forget Gate:** Decides what past information to discard.")
+        st.latex(r"f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)")
+        
+        st.markdown("**2. Input Gate:** Decides what new information to store.")
+        st.latex(r"i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)")
+        st.latex(r"\tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C)")
+
+    with col2:
+        st.markdown("**3. Cell State Update:** Merges past memory with new inputs.")
+        st.latex(r"C_t = f_t * C_{t-1} + i_t * \tilde{C}_t")
+        
+        st.markdown("**4. Output Gate:** Determines the next hidden state.")
+        st.latex(r"o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)")
+        st.latex(r"h_t = o_t * \tanh(C_t)")
+
+    st.markdown("""
+    The final hidden state is passed through a dense layer with a sigmoid activation to output the sequence-based probability of a regime shift.
+    """)
+
+    st.markdown("---")
+
+    # PHASE 4
+    st.header("Phase 4: Probabilistic Sector Ranking")
+    st.markdown("""
+    To make risk forecasts actionable, sectors are evaluated cross-sectionally. Raw metrics (Momentum, Relative Strength, Volatility) are standardized into Z-scores:
+    """)
+    st.latex(r"Z_{i, factor} = \frac{X_i - \mu_X}{\sigma_X}")
+    
+    st.markdown("A weighted composite score is calculated to favor momentum while penalizing volatility:")
+    st.latex(r"Score_i = 0.5 Z_i^{Momentum} + 0.4 Z_i^{RelativeStrength} + 0.1 Z_i^{Volatility*}")
+    st.caption("*Note: Volatility Z-score is inverted so lower risk yields a higher score.")
+
+    st.markdown("""
+    Finally, a **Softmax Temperature Transformation** squashes these unbounded scores into a dynamic, cross-sectional probability distribution:
+    """)
+    st.latex(r"P_i = \frac{\exp\left(\frac{Score_i - \max(Score)}{T}\right)}{\sum_j \exp\left(\frac{Score_j - \max(Score)}{T}\right)}")
     
     st.markdown("""
-Where:
-• s_i is the score for class i
-• T is temperature parameter (0 < T)
-• Higher T makes distribution more uniform
-• Lower T makes distribution more concentrated
-
-Temperature scaling is crucial for sector rotation scoring:
-• T = 1: Standard softmax (default behavior)
-• T < 1: Sharper concentration on best sectors
-• T > 1: Smoother distribution across sectors
-
-This calibration ensures probabilities properly reflect sector momentum relative to S&P500.
-""")
+    Where **$T$ (Temperature)** controls distribution concentration:
+    * $T = 1$: Standard distribution.
+    * $T < 1$: Sharper concentration on the highest-scoring sectors.
+    * $T > 1$: Smoother, more uniform distribution across all sectors.
+    """)
 
 elif mode == "Sector Rotation Monitor":
 

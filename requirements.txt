@@ -8,3 +8,9 @@ plotly
 xgboost
 statsmodels
 altair>=5.0.0
+
+tensorflow>=2.13.0
+keras>=2.13.0
+
+matplotlib
+seaborn

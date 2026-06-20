@@ -47,8 +47,17 @@ mode = st.sidebar.selectbox(
 @st.cache_data
 def load_and_prepare_data():
     """Load market data and create features (cached)"""
-    data = get_market_data()
-    df = create_features(data)
+    try:
+        data = get_market_data()
+        df = create_features(data)
+    except RuntimeError as e:
+        st.error(f"⚠️ Could not load market data: {e}")
+        st.info(
+            "This usually happens when Yahoo Finance rate-limits requests from "
+            "Streamlit Cloud's shared IPs. Try refreshing in a few minutes, "
+            "or run the app locally where this is less common."
+        )
+        st.stop()   # halts execution here instead of crashing further down
     return df
 
 if mode == "Live Risk Dashboard":
